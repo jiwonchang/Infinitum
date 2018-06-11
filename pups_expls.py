@@ -2,21 +2,55 @@ import pygame, random
 from settings import *
 
 class Pow(pygame.sprite.Sprite):
-    def __init__(self, game, center):
+    def __init__(self, game, sourceMob):
         self.groups = game.all_sprites, game.powerups
         pygame.sprite.Sprite.__init__(self, self.groups)
-        self.type = random.choice(['health', 'gun_2shot', 'gun_speed', 'shield', 'gun_power', 'missile', 'h_missile'])
-        self.image = game.powerup_images[self.type]
-        self.image.set_colorkey(BLACK)
-        # may need to delete the below segments later when i replace the missile powerup sprite
-        if self.type in ['missile', 'h_missile']:
-            self.image.set_colorkey(WHITE)
-        #####
-        self.rect = self.image.get_rect()
-        self.rect.center = center
-        self.speedy = 5
+        dropChance = random.randrange(0, 101)
+        self.dropped_item = True
+        if sourceMob.enemyType == 'meteor':
+            if sourceMob.is_gem_meteor:
+                # if dropChance < 100 * (sourceMob.radius/64):
+                if (sourceMob.mtype == 'lg' and dropChance > 20) or (sourceMob.mtype == 'med' and dropChance > 40) or (
+                        sourceMob.mtype == 'sm' and dropChance > 60):
+                    self.type = random.choice(
+                        ['Amethyst Ore', 'Aquamarine Ore', 'Bronze Ore', 'Diamond Ore', 'Garnet Ore',
+                         'Gold Ore', 'Sapphire Ore', 'Silver Ore', 'Steel Ore', 'Titanium Ore',
+                         'Topaz Ore'])
+                    self.image = pygame.transform.scale(game.powerup_images[self.type], (33, 33))
+                else:
+                    self.dropped_item = False
+                    self.kill()
+            else:
+                if (sourceMob.mtype == 'lg' and dropChance > 93) or (sourceMob.mtype == 'med' and dropChance > 96) or (
+                        sourceMob.mtype == 'sm' and dropChance > 99):
+                    self.type = random.choice(
+                        ['Amethyst Ore', 'Aquamarine Ore', 'Bronze Ore', 'Diamond Ore', 'Garnet Ore',
+                         'Gold Ore', 'Sapphire Ore', 'Silver Ore', 'Steel Ore', 'Titanium Ore',
+                         'Topaz Ore'])
+                    self.image = pygame.transform.scale(game.powerup_images[self.type], (33, 33))
+                else:
+                    self.dropped_item = False
+                    self.kill()
+        elif dropChance > 99:
+                self.type = random.choice(['health', 'gun_2shot', 'gun_speed', 'shield', 'gun_power', 'missile', 'h_missile'])
+                self.image = game.powerup_images[self.type]
+        else:
+            self.dropped_item = False
+            self.kill()
+        if self.dropped_item:
+            #self.image = game.powerup_images[self.type]
+            self.image.set_colorkey(BLACK)
+            # may need to delete the below segments later when i replace the missile powerup sprite
+            if self.type in ['missile', 'h_missile']:
+                self.image.set_colorkey(WHITE)
+            #####
+            self.rect = self.image.get_rect()
+            self.rect.center = sourceMob.rect.center
+            self.speedy = 5
 
     def update(self):
+        #if not self.dropped_item:
+        #    self.kill()
         self.rect.y += self.speedy
         # kill if it moves off the top of the screen
         if self.rect.top > HEIGHT:
@@ -49,6 +83,26 @@ class Explosion(pygame.sprite.Sprite):
                 self.image = self.game.explosion_anim[self.size][self.frame]
                 self.rect = self.image.get_rect()
                 self.rect.center = center
+
+
+class DamagingExplosion(Explosion):
+    def __init__(self, game, center, size):
+        self.groups = game.all_sprites, game.damanging_explosions
+        pygame.sprite.Sprite.__init__(self, self.groups)
+        self.size = size
+        self.image = game.explosion_anim[self.size][0]
+        self.game = game
+        self.rect = self.image.get_rect()
+        self.rect.center = center
+        self.radius = 100
+        self.contact_dmg = 75
+        self.frame = 0
+        self.last_update = pygame.time.get_ticks()
+        # larger frame rate = faster explosions. 50 or 75 seems pretty good
+        self.frame_rate = 30
+        self.damaged_player = False
+        self.damaged_mob = False
+        self.damaged_p_shield = False
 
 """
 explosion_anim = {}

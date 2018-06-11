@@ -92,26 +92,17 @@ class HomingMissile(Bullet):
     def __init__(self, game, x, y, target):
         self.groups = game.all_sprites, game.missiles
         pygame.sprite.Sprite.__init__(self, self.groups)
-        #self.image = bullet_img
-        # the bullet's size is originally set to be (6, 50)
         self.image_orig = pygame.transform.scale(game.missile_img, (12, 60))
         self.image_orig.set_colorkey(BLACK)
         self.game = game
         self.image = self.image_orig.copy()
         self.rect = self.image.get_rect()
-        #self.rect.bottom = y
-        #self.rect.centerx = x
-        #for homing purposes, we define target and a rotation angle
         self.pos = vec(x, y)
         self.target = target
         self.rot = 0
         self.rot_speed = 10
         self.last_update = pygame.time.get_ticks()
         self.angle = 90
-        #self.orig_angle = 0
-        #self.dx = 0
-        #elf.dy = 0
-        #self.old_centerx = self.rect.centerx
         self.inertia_time = 300
         self.slow_time = pygame.time.get_ticks()
         self.speed = 15
@@ -121,34 +112,6 @@ class HomingMissile(Bullet):
         self.accel = (0, 0)
         self.rect.center = self.pos
         self.dmg = 30
-        # for homing purposes, according to Unity tutorial
-        # self.directionVector = (self.target.rect.x - self.rect.x, self.target.rect.y - self.rect.x)
-        # self.directionMagnitude = math.sqrt(((self.directionVector[0]) ** 2) + ((self.directionVector[1]) ** 2))
-        # self.normalizedDirVec = (self.directionVector[0] / self.directionMagnitude,
-        #                         self.directionVector[1] / self.directionMagnitude)
-        # self.crossProduct = (self.normalizedDirVec[0] * self.speedy) - (self.normalizedDirVec[1] * self.speedx)
-        # self.rotateAmount = self.crossProduct
-        # self.angularVelocity = -self.rotateAmount * self.rot_speed
-
-    """
-    def rotate(self):
-        now = pygame.time.get_ticks()
-        # after 50 ticks since last update, rotate
-        if now - self.last_update > 50:
-            self.last_update = now
-            self.directionVector = (self.target.rect.x - self.rect.x, self.target.rect.y - self.rect.x)
-            self.directionMagnitude = math.sqrt(((self.directionVector[0]) ** 2) + ((self.directionVector[1]) ** 2))
-            self.normalizedDirVec = (self.directionVector[0] / self.directionMagnitude, self.directionVector[1] / self.directionMagnitude)
-            self.crossProduct = (self.normalizedDirVec[0] * self.speedy) - (self.normalizedDirVec[1] * self.speedx)
-            self.rotateAmount = self.crossProduct
-            self.angularVelocity = -self.rotateAmount * self.rot_speed
-            self.rot = math.degrees(math.atan2(self.target.rect.x - self.rect.x, self.target.rect.y - self.rect.y)) + 180
-            new_image = pygame.transform.rotate(self.image_orig, self.rot)
-            old_center = self.rect.center
-            self.image = new_image
-            self.rect = self.image.get_rect()
-            self.rect.center = old_center
-    """
 
     def update(self):
         if pygame.time.get_ticks() - self.slow_time <= self.inertia_time:

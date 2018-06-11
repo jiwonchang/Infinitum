@@ -22,6 +22,7 @@ class Player(pygame.sprite.Sprite):
         self.rect.bottom = HEIGHT - 10
         self.speedx = 0
         self.health = 100
+        self.total_health = 100
         # for homing purposes, we create the position variable
         self.pos = vec(self.rect.centerx, self.rect.centery)
         # time between auto-shots (less is faster shots)
@@ -42,6 +43,7 @@ class Player(pygame.sprite.Sprite):
         self.gun_power_time = pygame.time.get_ticks()
         self.force_field = False
         self.shield_health = 150
+        self.shield_total_health = 150
         self.shield_regen_time = pygame.time.get_ticks()
         self.missile_equip = 1
         self.missile_equip_time = pygame.time.get_ticks()
