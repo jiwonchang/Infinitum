@@ -17,27 +17,70 @@ class Bullet(pygame.sprite.Sprite):
 
 
 class DefaultBullet(Bullet):
-    def __init__(self, game, x, y):
+    def __init__(self, game, x, y, player_gun_upgrade_lvl, player_2s_upgrade_lvl, is_extra_shot=False, angle=None):
         self.groups = game.all_sprites, game.bullets
         pygame.sprite.Sprite.__init__(self, self.groups)
         #self.image = bullet_img
         # the bullet's size is set to be (6, 50)
-        self.image = pygame.transform.scale(game.bullet_img, (12, 80))
-        self.image.set_colorkey(BLACK)
+        self.image = game.bullet_img
         self.game = game
+        self.angle = 90
+        self.dmg = 10
+        #self.speedy = -30
+        #self.speed = 30
+        self.speedy = -40
+        self.speed = 40
+        if not is_extra_shot:
+            if player_gun_upgrade_lvl == 2:
+                self.image = game.powerbullet1_img
+                self.dmg = 15
+            elif player_gun_upgrade_lvl == 3:
+                self.image = game.powerbullet2_img
+                self.dmg = 20
+            elif player_gun_upgrade_lvl == 4:
+                self.image = game.powerbullet3_img
+                self.dmg = 25
         self.rect = self.image.get_rect()
         self.rect.bottom = y
         self.rect.centerx = x
-        self.speedy = -30
-        self.dmg = 10
+        self.pos = vec(x, y)
+        if is_extra_shot:
+            if player_gun_upgrade_lvl == 1:
+                self.image = game.bullet_small_img
+                self.dmg = 12 / player_2s_upgrade_lvl
+            elif player_gun_upgrade_lvl == 2:
+                self.image = game.powerbullet1_small_img
+                self.dmg = 16 / player_2s_upgrade_lvl
+            elif player_gun_upgrade_lvl == 3:
+                self.image = game.powerbullet2_small_img
+                self.dmg = 22 / player_2s_upgrade_lvl
+            elif player_gun_upgrade_lvl == 4:
+                self.image = game.powerbullet3_small_img
+                self.dmg = 26 / player_2s_upgrade_lvl
+            self.rect = self.image.get_rect()
+            self.rect.bottom = y
+            self.rect.centerx = x
+            if angle:
+                self.rect.bottom = y + 20
+                self.pos = vec(x, y)
+                self.angle = angle
+                self.image = pygame.transform.rotate(self.image, 90 - self.angle)
+                curDirVect = (float(math.cos(math.radians(self.angle))), float(math.sin(math.radians(self.angle))))
+                self.vel = vec(curDirVect[0] * self.speed, curDirVect[1] * self.speed)
+        self.image.set_colorkey(BLACK)
 
     def update(self):
-        self.rect.y += self.speedy
-        # kill if it moves off the top of the screen
+        if self.angle == 90:
+            self.rect.y += self.speedy
+            # kill if it moves off the top of the screen
+        else:
+            self.pos -= self.vel
+            self.rect.bottom = self.pos[1]
+            self.rect.centerx = self.pos[0]
         if self.rect.bottom < 0:
             self.kill()
 
-
+"""
 class PowerBullet(Bullet):
     def __init__(self, game, x, y):
         self.groups = game.all_sprites, game.bullets
@@ -58,6 +101,7 @@ class PowerBullet(Bullet):
         # kill if it moves off the top of the screen
         if self.rect.bottom < 0:
             self.kill()
+"""
 
 
 class Missile(Bullet):

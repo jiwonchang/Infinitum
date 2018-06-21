@@ -16,7 +16,8 @@ class Pow(pygame.sprite.Sprite):
                         ['Amethyst Ore', 'Aquamarine Ore', 'Bronze Ore', 'Diamond Ore', 'Garnet Ore',
                          'Gold Ore', 'Sapphire Ore', 'Silver Ore', 'Steel Ore', 'Titanium Ore',
                          'Topaz Ore'])
-                    self.image = pygame.transform.scale(game.powerup_images[self.type], (33, 33))
+                    img = game.powerup_images[self.type]
+                    self.image = pygame.transform.scale(game.powerup_images[self.type], (int(img.get_size()[0] * 1.5), int(img.get_size()[1] * 1.5)))
                 else:
                     self.dropped_item = False
                     self.kill()
@@ -27,7 +28,8 @@ class Pow(pygame.sprite.Sprite):
                         ['Amethyst Ore', 'Aquamarine Ore', 'Bronze Ore', 'Diamond Ore', 'Garnet Ore',
                          'Gold Ore', 'Sapphire Ore', 'Silver Ore', 'Steel Ore', 'Titanium Ore',
                          'Topaz Ore'])
-                    self.image = pygame.transform.scale(game.powerup_images[self.type], (33, 33))
+                    img = game.powerup_images[self.type]
+                    self.image = pygame.transform.scale(game.powerup_images[self.type], (int(img.get_size()[0] * 1.5), int(img.get_size()[1] * 1.5)))
                 else:
                     self.dropped_item = False
                     self.kill()
