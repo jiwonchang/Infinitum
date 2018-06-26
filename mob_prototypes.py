@@ -26,6 +26,7 @@ class PrototypeEnemyShip(Mob):
         #self.mtype = 'med'
         #self.health = 10
         self.movePattern = movePattern
+        self.formation = movePattern
         self.fireable_range = random.randrange(-300, 301)
         if movePattern[0:3] == 'top':
             self.despawn_location = 'down'
@@ -100,6 +101,7 @@ class PrototypeEnemyShip(Mob):
         self.last_shot = pygame.time.get_ticks()
         self.bullet_type = MobDefBullet
         self.fire_chance = 2
+        self.killed = False
         self.enemyType = 'enemyShip'
 
     def update(self):
@@ -138,9 +140,11 @@ class PrototypeEnemyShip(Mob):
                 self.destination = self.destination_list[self.dest_index]
         if self.despawn_location == 'down' and self.rect.top > HEIGHT + 60 \
                 or self.rect.left < -100 or self.rect.right > WIDTH + 100:
+            self.game.stage_respawn_list.append((self.enemyType, self.movePattern, False, self.order))
             self.kill()
         elif self.despawn_location == 'up' and self.rect.top < -HEIGHT - 60 \
                 or self.rect.left < -100 or self.rect.right > WIDTH + 100:
+            self.game.stage_respawn_list.append((self.enemyType, self.movePattern, False, self.order))
             self.kill()
 
         if self.rect.y > 0 and self.rect.y < HEIGHT and self.shots_fired < self.shots_allowed \
@@ -156,7 +160,9 @@ class PrototypeEnemyShip(Mob):
         self.rot_speed = rot_speed
         self.speed = speed
         self.rect.x = x
+        self.spawn_x = x
         self.rect.y = y
+        self.spawn_y = y
         self.destination_list = destinationList
 
     def shoot(self, Bullet):
@@ -183,6 +189,7 @@ class PrototypeEnemyFighter(Mob):
         self.mtype = 'med'
         self.health = 10
         self.movePattern = movePattern
+        self.formation = movePattern
         self.fireable_range = random.randrange(-300, 301)
         self.slow_at_last_run = False
         self.shoot_when_aim_down = False
@@ -271,6 +278,7 @@ class PrototypeEnemyFighter(Mob):
         self.shots_fired = 0
         self.shot_delay = 500
         self.last_shot = pygame.time.get_ticks()
+        self.killed = False
         self.enemyType = 'enemyFighter'
 
     def update(self):
@@ -314,9 +322,11 @@ class PrototypeEnemyFighter(Mob):
                     self.speed = 6
         if self.despawn_location == 'down' and self.rect.top > HEIGHT + 60 \
                 or self.rect.left < -100 or self.rect.right > WIDTH + 100:
+            self.game.stage_respawn_list.append((self.enemyType, self.movePattern, False, self.order))
             self.kill()
         elif self.despawn_location == 'up' and self.rect.top < -HEIGHT - 60 \
                 or self.rect.left < -100 or self.rect.right > WIDTH + 100:
+            self.game.stage_respawn_list.append((self.enemyType, self.movePattern, False, self.order))
             self.kill()
 
         if self.rect.y > 0 and self.rect.y < HEIGHT and (self.to_final_dest or self.shoot_when_aim_down) and self.shots_fired < self.shots_allowed \
@@ -340,7 +350,9 @@ class PrototypeEnemyFighter(Mob):
         self.rot_speed = rot_speed
         self.speed = speed
         self.rect.x = x
+        self.spawn_x = x
         self.rect.y = y
+        self.spawn_y = y
         self.destination_list = destinationList
 
     def shoot(self, Bullet):
@@ -369,6 +381,7 @@ class PrototypeCoordEnemy(Mob):
         #self.mtype = 'med'
         #self.health = 30
         self.movePattern = movePattern
+        self.formation = movePattern
         self.fireable_range = random.randrange(-300, 301)
         if movePattern[0:3] == 'top':
             self.despawn_location = 'down'
@@ -419,6 +432,7 @@ class PrototypeCoordEnemy(Mob):
         self.firing_chance = 2
         self.projectile_type = MobBomb
         self.side_speed = 2
+        self.killed = False
         self.enemyType = 'pro_coord_enemy'
 
     def update(self):
@@ -475,6 +489,8 @@ class PrototypeCoordEnemy(Mob):
                 if self.went_left >= 80:
                     self.reached_far_right = False
                     self.reached_far_left = True
+            if self.shots_fired >= self.shots_allowed:
+                self.despawn_location = "all"
         else:
             directionVector = self.destination - self.pos
             directionMagnitude = math.sqrt(((directionVector[0]) ** 2) + ((directionVector[1]) ** 2))
@@ -517,9 +533,14 @@ class PrototypeCoordEnemy(Mob):
                     self.destination = self.destination_list[self.dest_index]
         if self.despawn_location == 'down' and self.rect.top > HEIGHT + 60 \
                 or self.rect.left < -100 or self.rect.right > WIDTH + 100:
+            self.game.stage_respawn_list.append((self.enemyType, self.movePattern, False, self.order))
             self.kill()
         elif self.despawn_location == 'up' and self.rect.top < -HEIGHT - 60 \
                 or self.rect.left < -100 or self.rect.right > WIDTH + 100:
+            self.game.stage_respawn_list.append((self.enemyType, self.movePattern, False, self.order))
+            self.kill()
+        elif self.despawn_location == 'all' and self.rect.top > HEIGHT + 60 or self.rect.top < -HEIGHT - 60 or self.rect.left < -100 or self.rect.right > WIDTH + 100:
+            self.game.stage_respawn_list.append((self.enemyType, self.movePattern, False, self.order))
             self.kill()
 
     def moveFormation(self, x, y, angle=270, speed=14, rot_speed=8, destinationList=[]):
@@ -527,7 +548,9 @@ class PrototypeCoordEnemy(Mob):
         self.rot_speed = rot_speed
         self.speed = speed
         self.rect.x = x
+        self.spawn_x = x
         self.rect.y = y
+        self.spawn_y = y
         self.destination_list = destinationList
 
     def shoot(self, Projectile):
@@ -555,6 +578,7 @@ class PrototypeKamikaze(Mob):
         #self.mtype = 'med'
         #self.health = 10
         self.movePattern = movePattern
+        self.formation = movePattern
         if movePattern[0:3] == 'top':
             self.despawn_location = 'down'
         elif movePattern[0:3] == 'bot':
@@ -593,6 +617,7 @@ class PrototypeKamikaze(Mob):
         #self.rect.center = self.pos
         self.collision_dmg = self.radius * 2
         self.homing_speed = 8
+        self.killed = False
         self.enemyType = 'kamikaze'
 
     def update(self):
@@ -635,12 +660,15 @@ class PrototypeKamikaze(Mob):
                 self.destination = self.destination_list[self.dest_index]
         if self.despawn_location == 'down' and (self.rect.top > HEIGHT + 60 \
                 or self.rect.left < -100 or self.rect.right > WIDTH + 100):
+            self.game.stage_respawn_list.append((self.enemyType, self.movePattern, False, self.order))
             self.kill()
         elif self.despawn_location == 'up' and (self.rect.top < -HEIGHT - 60 \
                 or self.rect.left < -100 or self.rect.right > WIDTH + 100):
+            self.game.stage_respawn_list.append((self.enemyType, self.movePattern, False, self.order))
             self.kill()
         elif self.despawn_location == 'side' and (self.rect.top < -HEIGHT - 60 \
                 or self.rect.y > HEIGHT + 70):
+            self.game.stage_respawn_list.append((self.enemyType, self.movePattern, False, self.order))
             self.kill()
 
     def moveFormation(self, x, y, angle=270, speed=14, rot_speed=8, destinationList=[]):
@@ -658,6 +686,152 @@ class PrototypeKamikaze(Mob):
         self.rect.x = x
         self.rect.y = y
         self.destination_list = destinationList
+
+
+class ProtoSmugglerLieut(Mob):
+    def __init__(self, game, img, movePattern, order, shots_allowed, spawn_distance=200, img_is_alpha=False):
+        self.groups = game.all_sprites, game.mobs
+        pygame.sprite.Sprite.__init__(self, self.groups)
+        # self.image = bullet_img
+        # the bullet's size is originally set to be (6, 50)
+        self.image_orig = img
+        if not img_is_alpha:
+            self.image_orig.set_colorkey(BLACK)
+        self.game = game
+        self.image = self.image_orig.copy()
+        self.rect = self.image.get_rect()
+        #self.radius = 16
+        #self.mtype = 'med'
+        #self.health = 30
+        self.movePattern = movePattern
+        self.formation = movePattern
+        self.fireable_range = random.randrange(-300, 301)
+        if movePattern[0:3] == 'top':
+            self.despawn_location = 'down'
+        elif movePattern[0:3] == 'bot':
+            self.despawn_location = 'up'
+        elif movePattern[0:5] in ['lower', 'upper']:
+            self.despawn_location = 'side'
+        self.top_spawn_y = -120 - (spawn_distance * order)
+        self.bot_spawn_y = 1084 + (spawn_distance * order)
+        self.lowerLeftSpawn_x = -60 - (spawn_distance * order)
+        self.lowerRightSpawn_x = WIDTH + 60 + (spawn_distance * order)
+        self.order = order
+        #self.angle = 270
+        #self.speed = 8
+        #self.rot = 0
+        #self.rot_speed = 8
+        """
+        self.destination_list = []
+        if movePattern == 'topLeft_Bomber':
+            self.moveFormation(96, self.top_spawn_y, self.angle, self.speed, self.rot_speed,
+                               [(96, 704), (bomber_ten_squad_coords[4-order][0]+48, 704), bomber_ten_squad_coords[4-order]])
+        elif movePattern == 'topRight_Bomber':
+            self.moveFormation(WIDTH - 96, self.top_spawn_y, self.angle, self.speed, self.rot_speed,
+                               [(WIDTH - 96, 704), (bomber_ten_squad_coords[order+5][0]-48, 704), bomber_ten_squad_coords[order+5]])
+        elif movePattern == 'lowerLeft_Bomber':
+            self.moveSideFormation(self.lowerLeftSpawn_x, HEIGHT - 160, self.angle, self.speed, self.rot_speed,
+                               [(32, HEIGHT - 160), (1024, 160), (160, 96), bomber_ten_squad_coords[order+5]])
+        elif movePattern == 'lowerRight_Bomber':
+            self.moveSideFormation(self.lowerRightSpawn_x, HEIGHT - 160, self.angle, self.speed, self.rot_speed,
+                               [(WIDTH - 32, HEIGHT - 160), (WIDTH - 1024, 160), (WIDTH - 160, 96), bomber_ten_squad_coords[order]])
+        self.dest_index = 0
+        self.destination = self.destination_list[self.dest_index]
+        self.pos = vec(self.rect.x, self.rect.y)
+        """
+        self.last_update = pygame.time.get_ticks()
+        self.vel = vec(0, 0)
+        #self.rect.center = self.pos
+        self.collision_dmg = self.radius * 2
+        self.shots_allowed = shots_allowed
+        self.shots_fired = 0
+        self.shot_delay = 200
+        self.last_shot = pygame.time.get_ticks()
+        self.reached_dialog_destination = False
+        #self.en_route_final_dest = False
+        #self.reached_final_destination = False
+        #self.went_right = 0
+        #self.went_left = 0
+        #self.reached_far_right, self.reached_far_left = False, True
+        self.firing_chance = 2
+        self.projectile_type = MobBomb
+        self.side_speed = 2
+        self.kiled = False
+        self.enemyType = 'pro_smug_lieut_enemy'
+
+    def update(self):
+        if self.game.on_dialogue_stage and not self.reached_dialog_destination:
+            if self.rect.centery < 320:
+                self.pos = vec(self.rect.centerx, self.rect.centery + 8)
+                self.rect.center = self.pos
+            else:
+                self.reached_dialog_destination = True
+                self.despawn_location = 'all'
+        elif not self.game.on_dialogue_stage and self.reached_dialog_destination:
+            directionVector = self.destination - self.pos
+            directionMagnitude = math.sqrt(((directionVector[0]) ** 2) + ((directionVector[1]) ** 2))
+            if directionMagnitude > 0:
+                directionVector = (directionVector[0] / directionMagnitude,
+                                   directionVector[1] / directionMagnitude)
+            # get cross product between the direction vector (from the missile to target) and actual angle vector
+            # (the direction in which the missile is actually / currently headed)
+            # print(directionVector)
+            curDirVect = (float(math.cos(math.radians(self.angle))), float(math.sin(math.radians(self.angle))))
+            # print(curDirVect)
+            # print(self.angle)
+            crossProduct = cross(directionVector, curDirVect)
+            rotateAmount = crossProduct
+            # print(crossProduct)
+            # angular velocity
+            self.rot = rotateAmount * self.rot_speed
+            self.angle = (self.angle + self.rot) % 360
+            new_image = pygame.transform.rotate(self.image_orig, -self.angle + 90)
+            self.image = new_image
+            self.rect = self.image.get_rect()
+
+            # now, missile will head in direction it is currently facing with its speed
+            curDirVect = (float(math.cos(math.radians(self.angle))), float(math.sin(math.radians(self.angle))))
+            # print(curDirVect)
+            self.vel = vec(curDirVect[0] * self.speed, curDirVect[1] * self.speed)
+            # print(self.vel)
+            # we subtract vel here because our screen is flipped
+            self.pos -= self.vel
+            self.rect.center = self.pos
+            if self.rect.collidepoint(self.destination) and self.alive():
+                dest_list_length = len(self.destination_list)
+                if self.dest_index < dest_list_length - 1:
+                    self.dest_index += 1
+                    self.destination = self.destination_list[self.dest_index]
+                    if self.dest_index == dest_list_length - 1:
+                        #self.en_route_final_dest = True
+                        #self.final_destination = self.destination_list[self.dest_index]
+                        #curDirVect = (float(math.cos(math.radians(90))), float(math.sin(math.radians(90))))
+                        #self.vel = vec(curDirVect[0] * self.speed, curDirVect[1] * self.speed)
+                        self.dest_index = 0
+        if self.despawn_location == 'down' and self.rect.top > HEIGHT + 60 \
+                or self.rect.left < -100 or self.rect.right > WIDTH + 100:
+            self.kill()
+        elif self.despawn_location == 'up' and self.rect.top < -HEIGHT - 60 \
+                or self.rect.left < -100 or self.rect.right > WIDTH + 100:
+            self.kill()
+        elif self.despawn_location == 'all' and self.rect.top > HEIGHT + 60 or self.rect.top < -HEIGHT - 60 or self.rect.left < -100 or self.rect.right > WIDTH + 100:
+            self.kill()
+
+    def moveFormation(self, x, y, angle=270, speed=14, rot_speed=8, destinationList=[]):
+        self.angle = angle
+        self.rot_speed = rot_speed
+        self.speed = speed
+        self.rect.x = x
+        self.rect.y = y
+        self.destination_list = destinationList
+
+    def shoot(self, Projectile):
+        #now = pygame.time.get_ticks()
+        self.game.e1_shoot_sound.set_volume(0.3)
+        self.game.e1_shoot_sound.play()
+        #if now - self.last_shot > self.shoot_delay:
+        #    self.last_shot = now
+        bullet = Projectile(self.game, self.rect.centerx, self.rect.bottom)
 
 
 # for future reference, here is the enemy cruiser class

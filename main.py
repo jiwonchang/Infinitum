@@ -58,13 +58,18 @@ class Game:
         self.load_gui()
 
         # list of all stages, in order, so that we iterate through every time we accomplish mission
-        self.stages = ['stage1']
-        self.stage_index = 0
+        self.stages = ['stage1', 'stage2']
+        self.stage_index = 1
 
         # keep track of current stage so that, when game over, we can continue on the stage if we so chose
         self.current_stage = self.stages[self.stage_index]
         # make True if we are currently having a dialogue.
+        self.dialog_flag_encountered = False
         self.on_dialogue_stage = False
+        #self.dialog_name_index = 0
+        self.dialog_turn_index = 0
+        #self.dialog_line_broken = False
+        self.stage_respawn_list = []
 
         self.money = 1000000
         self.inventory = {'Amethyst Ore': 0, 'Aquamarine Ore': 0, 'Bronze Ore': 0, 'Diamond Ore': 0, 'Emerald Ore': 0,
@@ -440,6 +445,14 @@ class Game:
         if self.paused:
             self.screen.blit(self.dim_screen, (0, 0))
             self.draw_text(self.screen, "Paused", 60, WIDTH / 2, HEIGHT / 2)
+        # if on dialog screen, keep iterating through the dialog pages when ENTER is pressed until pages run out
+        if self.on_dialogue_stage:
+            self.screen.blit(self.dialog_background, self.dialog_background_rect)
+            line_counter = 0
+            for line in dialog_box_dict[self.current_stage][self.dialog_turn_index]:
+                self.ui_box_leftText(line, WHITE, 20, 384, 768 + (40 * line_counter))
+                line_counter += 1
+            self.ui_box_leftText("Press ENTER", WHITE, 15, 1248, 992)
         # *after* drawing everything, flip the display
         pygame.display.flip()
 
@@ -453,10 +466,18 @@ class Game:
                     self.quit()
                 if event.key == pygame.K_p:
                     self.paused = not self.paused
+                if event.key == pygame.K_RETURN:
+                    if self.on_dialogue_stage:
+                        if self.dialog_turn_index < len(dialog_box_dict[self.current_stage]) - 1:
+                            self.dialog_turn_index += 1
+                        else:
+                            self.on_dialogue_stage = False
+                            self.dialog_turn_index = 0
 
     def load_sprites(self):
         # dialog backgound
-        self.dialog_background = pygame.image.load(path.join(img_dir, '1856x1024_dialog_stage.png')).convert()
+        self.dialog_background = pygame.image.load(path.join(img_dir, '1856x1024_dialog_stage.png')).convert_alpha()
+        self.dialog_background_rect = self.dialog_background.get_rect()
         # player sprites
         player_img = pygame.image.load(path.join(img_dir, "playerShip1_blue.png")).convert()
         self.player_img = pygame.transform.scale(player_img, (75, 57))
@@ -716,7 +737,7 @@ class Game:
         # so we want to blit the text onto the surface, which will usually be our screen.
         surf.blit(text_surface, text_rect)
 
-    def spawnEnemy(self, enemyType, formation=None, respawn=False, number=1):
+    def spawnEnemy(self, enemyType, formation=None, respawn=False, number=1, leftover_respawn=False):
         if enemyType == 'meteor':
             if not respawn:
                 for i in range(number):
@@ -736,40 +757,69 @@ class Game:
                     m = Meteor(self, False)
                     m.formation = 'w/e'
         elif enemyType == 'enemyShip1':
-            if not respawn:
+            if not respawn and not leftover_respawn:
                 for order in range(0, number if number > 1 else 1):
                     m = EnemyShip1(self, formation, order, 2)
                     m.formation = formation
+            elif leftover_respawn:
+                m = EnemyShip1(self, formation, number, 2)
+                m.formation = formation
         elif enemyType == 'enemySmuggler1':
-            if not respawn:
+            if not respawn and not leftover_respawn:
                 for order in range(0, number if number > 1 else 1):
                     m = EnemySmuggler1(self, formation, order, 20)
                     m.formation = formation
+            elif leftover_respawn:
+                m = EnemySmuggler1(self, formation, number, 20)
+                m.formation = formation
         elif enemyType == 'enemySmuggler2':
-            if not respawn:
+            if not respawn and not leftover_respawn:
                 for order in range(0, number if number > 1 else 1):
                     m = EnemySmuggler2(self, formation, order, 20)
                     m.formation = formation
+            elif leftover_respawn:
+                m = EnemySmuggler2(self, formation, number, 20)
+                m.formation = formation
+        elif enemyType == 'enemySmugglerLieut':
+            if not respawn and not leftover_respawn:
+                for order in range(0, number if number > 1 else 1):
+                    m = EnemySmugglerLieut(self, formation, order, 200)
+                    m.formation = formation
+            elif leftover_respawn:
+                m = EnemySmugglerLieut(self, formation, number, 20)
+                m.formation = formation
         elif enemyType == 'enemyFighter1':
-            if not respawn:
+            if not respawn and not leftover_respawn:
                 for order in range(0, number if number > 1 else 1):
                     m = EnemyFighter1(self, formation, order, 5)
                     m.formation = formation
+            elif leftover_respawn:
+                m = EnemyFighter1(self, formation, number, 5)
+                m.formation = formation
         elif enemyType == 'kamikaze':
-            if not respawn:
+            if not respawn and not leftover_respawn:
                 for order in range(0, number if number > 1 else 1):
                     m = Kamikaze(self, formation, order)
                     m.formation = formation
+            elif leftover_respawn:
+                m = Kamikaze(self, formation, number)
+                m.formation = formation
         elif enemyType == 'enemyBomber':
-            if not respawn:
+            if not respawn and not leftover_respawn:
                 for order in range(0, number if number > 1 else 1):
                     m = EnemyBomber(self, formation, order, 5)
                     m.formation = formation
+            elif leftover_respawn:
+                m = EnemyBomber(self, formation, number, 5)
+                m.formation = formation
         elif enemyType == 'enemyCruiser1':
-            if not respawn:
+            if not respawn and not leftover_respawn:
                 for order in range(0, number if number > 1 else 1):
                     m = EnemyCruiser1(self, formation, order, 100)
                     m.formation = formation
+            elif leftover_respawn:
+                m = EnemyCruiser1(self, formation, number, 100)
+                m.formation = formation
 
     def explode(self, center, size):
         # spawning explosion
@@ -1722,10 +1772,6 @@ class Game:
         textSurface = font.render(text, True, text_color)
         return textSurface, textSurface.get_rect()
 
-    def dialogue_stage(self):
-        self.on_dialogue_stage = True
-
-
     def reset_player_stats(self):
         # resets player stats and location in preparation for a new game
         self.player.lives = self.player.total_lives
@@ -1745,6 +1791,7 @@ class Game:
         self.enemy_bullets = pygame.sprite.Group()
         self.damanging_explosions = pygame.sprite.Group()
         self.enemy_bombs = pygame.sprite.Group()
+        self.stage_respawn_list = []
 
         if game_conditions.game_over:
             game_conditions.game_over = False
@@ -1773,7 +1820,7 @@ class Game:
         while self.playing:
             self.dt = self.clock.tick(FPS) / 1000.0
             self.events()
-            if not self.paused:
+            if not self.paused and not self.on_dialogue_stage:
                 now = pygame.time.get_ticks()
                 # spawning meteors when we are playing in an asteroid field
                 if stage_name == 'asteroid_field' and not asteroid_end_of_list and not self.stage_beaten:
@@ -1807,13 +1854,27 @@ class Game:
                             self.stage_beaten = True
                     elif not spawned_first_enemy or now - timer > 1000:
                         for mob_descript in stage[stage_wave_index]:
-                            self.spawnEnemy(mob_descript[0], mob_descript[1], mob_descript[2], mob_descript[3])
-                        if stage_wave_index < len(stage)-1:
-                            stage_wave_index += 1
+                            if mob_descript == 'dialogue' and self.mobs :
+                                self.dialog_flag_encountered = True
+                                #print(stage[stage_wave_index])
+                            elif (self.dialog_flag_encountered and not self.mobs) or (mob_descript == 'dialogue' and not self.mobs):
+                                self.on_dialogue_stage = True
+                                self.dialog_flag_encountered = False
+                            elif not self.dialog_flag_encountered:
+                                self.spawnEnemy(mob_descript[0], mob_descript[1], mob_descript[2], mob_descript[3])
+                        while self.stage_respawn_list:
+                            mob_descript = self.stage_respawn_list.pop(0)
+                            self.spawnEnemy(mob_descript[0], mob_descript[1], mob_descript[2], mob_descript[3], True)
+                        if stage_wave_index < len(stage)-1 or self.dialog_flag_encountered:
+                            if not self.dialog_flag_encountered:
+                                stage_wave_index += 1
                         else:
                             self.stage_beaten = True
                         timer = now
                         spawned_first_enemy = True
+                self.update()
+            elif self.on_dialogue_stage:
+                timer = pygame.time.get_ticks()
                 self.update()
             self.draw()
             if game_conditions.game_over:

@@ -161,7 +161,7 @@ class EnemySmuggler1(PrototypeEnemyFighter):
     def __init__(self, game, movePattern, order, shots_allowed):
         self.angle = 270
         super().__init__(game, game.enemy_smuggler1_img, movePattern, order, shots_allowed, 100)
-        self.speed = 10
+        self.speed = 12
         self.rot_speed = 8
         self.destination_list = []
         cowardice_chance = random.randrange(0, 101)
@@ -171,7 +171,7 @@ class EnemySmuggler1(PrototypeEnemyFighter):
                                [(random.randrange(spawn_x-192, spawn_x+192), 640),
                                 ((random.randrange(32, WIDTH-32), HEIGHT + 100) if cowardice_chance < 76 else (random.choice([-100, WIDTH+100]), random.randrange(192, HEIGHT-640)))])
             self.shoot_when_aim_down = True
-            self.speed = 10
+            self.speed = 12
         elif movePattern == 'topLeftDown_Rand':
             self.moveFormation(random.randrange(192, WIDTH/2-64), self.top_spawn_y, self.angle, self.speed, self.rot_speed,
                                [(random.randrange(WIDTH/2-480, WIDTH-192),752), ((random.randrange(WIDTH/2, WIDTH-192), 192) if cowardice_chance < 76 else (-100, random.randrange(192, HEIGHT-640))),
@@ -481,3 +481,53 @@ class EnemyCruiser1(PrototypeCoordEnemy):
         bullet = Bullet(self.game, self.rect.left+10, self.rect.centery, self, self.game.player)
         bullet = Bullet(self.game, self.rect.right-10, self.rect.centery, self, self.game.player)
 
+
+class EnemySmugglerLieut(ProtoSmugglerLieut):
+    def __init__(self, game, movePattern, order, shots_allowed):
+        self.radius = 70
+        self.mtype = 'xxx_lg'
+        self.health = 200
+        self.order = (4 if order > 4 else order)
+        self.angle = 270
+        self.speed = 7
+        self.rot = 0
+        self.rot_speed = 8
+        super().__init__(game, game.enemy_cruiser1_img, movePattern, self.order, shots_allowed, 300, True)
+        self.destination_list = []
+        if movePattern == 'topDown_SLieut':
+            self.moveFormation(WIDTH/2, self.top_spawn_y, self.angle, self.speed, self.rot_speed,
+                               [(WIDTH/2, 256), (320, 256), (WIDTH-320, 256), (WIDTH/2, 256), (WIDTH/2, 928), (WIDTH/2, 256)])
+        elif movePattern == 'topRight_Cruiser':
+            self.moveFormation(WIDTH - 96, self.top_spawn_y, self.angle, self.speed, self.rot_speed,
+                               [(WIDTH - 96, 744), (cruiser1_eight_squad_coords[order+4][0]-120, 704), cruiser1_eight_squad_coords[order+4]])
+        elif movePattern == 'lowerLeft_Cruiser':
+            self.moveSideFormation(self.lowerLeftSpawn_x, HEIGHT - 160, self.angle, self.speed, self.rot_speed,
+                               [(32, HEIGHT - 160), (1024, 160), (160, 96), cruiser1_eight_squad_coords[order+5]])
+        elif movePattern == 'lowerRight_Cruiser':
+            self.moveSideFormation(self.lowerRightSpawn_x, HEIGHT - 160, self.angle, self.speed, self.rot_speed,
+                               [(WIDTH - 32, HEIGHT - 160), (WIDTH - 1024, 160), (WIDTH - 160, 96), cruiser1_eight_squad_coords[order]])
+        self.dest_index = 0
+        self.destination = self.destination_list[self.dest_index]
+        self.pos = vec(self.rect.x, self.rect.y)
+        self.rect.center = self.pos
+        self.collision_dmg = self.radius * 3
+        self.shot_delay = 1000
+        self.firing_chance = 5
+        self.projectile_type = MobCruiser1Bullet
+        self.side_speed = 1
+        self.enemyType = 'enemySmugglerLieut'
+
+    def update(self):
+        super().update()
+
+    def moveFormation(self, x, y, angle=270, speed=14, rot_speed=8, destinationList=[]):
+        super().moveFormation(x, y, angle, speed, rot_speed, destinationList)
+
+    def shoot(self, Bullet):
+        #now = pygame.time.get_ticks()
+        self.game.e1_shoot_sound.set_volume(0.3)
+        self.game.e1_shoot_sound.play()
+        #if now - self.last_shot > self.shoot_delay:
+        #    self.last_shot = now
+        bullet = Bullet(self.game, self.rect.left+10, self.rect.centery, self, self.game.player)
+        bullet = Bullet(self.game, self.rect.right-10, self.rect.centery, self, self.game.player)
