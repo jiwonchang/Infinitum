@@ -1007,8 +1007,16 @@ class Game:
         #self.draw_text(self.screen, "Exit to Menu", 50, WIDTH / 2, HEIGHT * (6/10))
         #self.draw_text(self.screen, "Exit Game", 50, WIDTH / 2, HEIGHT * (7/10))
         #self.draw_text(self.screen, "Press Enter to select", 30, WIDTH / 2, HEIGHT * (9 / 10))
+        self.draw_text(self.screen, "Back", 20, 224, HEIGHT * (7 / 10))
+        self.draw_text(self.screen, "Exit Game", 20, 224, HEIGHT * (8 / 10))
+        self.draw_text(self.screen, "Press Enter to select", 10, 224, HEIGHT * (9 / 10))
+        options_cursor_coords = [((224) - 120, HEIGHT * (7/10) - 10), ((224) - 190, HEIGHT * (8 / 10) - 10)]
         pygame.display.flip()
-        self.wait_for_key()
+        choice = self.navigate_menu([0, 1], options_cursor_coords)
+        if choice == 0:
+            self.show_start_screen()
+        elif choice == 1:
+            self.quit()
 
     def begin_new_game(self):
         # this function will contain a scene
