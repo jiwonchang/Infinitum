@@ -59,7 +59,8 @@ class Game:
 
         # list of all stages, in order, so that we iterate through every time we accomplish mission
         self.stages = ['stage1', 'stage2']
-        self.stage_index = 1
+        self.stage_index = 0
+        self.stage_beaten = False
 
         # keep track of current stage so that, when game over, we can continue on the stage if we so chose
         self.current_stage = self.stages[self.stage_index]
@@ -648,6 +649,9 @@ class Game:
         self.mob_bullet_img = pygame.transform.scale(mob_bullet_img, (25, 25))
         mob_bullet_yellow_img = pygame.image.load(path.join(img_dir, "laserYellow03.png")).convert()
         self.mob_bullet_yellow_img = pygame.transform.scale(mob_bullet_yellow_img, (25, 25))
+        mob_bullet_orange_img = pygame.image.load(path.join(img_dir, "laserOrange03.png")).convert()
+        self.mob_bullet_orange_img = pygame.transform.scale(mob_bullet_orange_img, (35, 35))
+        self.mob_bullet_orange_split_img = pygame.transform.scale(mob_bullet_orange_img, (30, 30))
         self.mob_bomb_img = pygame.image.load(path.join(img_dir, "spaceMissiles_006.png")).convert()
         self.enemy_fighter1_bullet_img = pygame.image.load(path.join(img_dir, "laserRed07.png")).convert()
         #self.enemy_fighter1_bullet_img = pygame.transform.scale(enemy_fighter1_bullet_img, (9, 25))
@@ -913,6 +917,28 @@ class Game:
             self.run(self.current_stage)
         elif choice == 1:
             self.ship_deck_menu()
+        elif choice == 2:
+            self.quit()
+
+    def show_stage_conclusion_screen(self):
+        self.screen.blit(self.background, self.background_rect)
+        self.draw_text(self.screen, "Mission Successful!", 70, WIDTH / 2, HEIGHT * (2.5 / 10))
+        self.draw_text(self.screen, "Proceed to Menu", 30, WIDTH / 2, HEIGHT * (5/10))
+        self.draw_text(self.screen, "Retry Stage", 30, WIDTH / 2, HEIGHT * (6/10))
+        self.draw_text(self.screen, "Exit Game", 30, WIDTH / 2, HEIGHT * (7/10))
+        self.draw_text(self.screen, "Press Enter to select", 20, WIDTH / 2, HEIGHT * (9 / 10))
+        options_cursor_coords = [((WIDTH / 2) - 370, HEIGHT / 2 - 5), ((WIDTH / 2) - 300, HEIGHT * (6 / 10) - 5),
+                                 ((WIDTH / 2) - 250, HEIGHT * (7 / 10) - 5)]
+        pygame.display.flip()
+        choice  = self.navigate_menu([0,1,2], options_cursor_coords)
+        if choice == 0:
+            self.stage_index += 1
+            self.ship_deck_menu()
+        elif choice == 1:
+            self.player.lives = 3
+            self.initialize()
+            self.all_sprites.add(self.player)
+            self.run(self.current_stage)
         elif choice == 2:
             self.quit()
 
@@ -1778,6 +1804,8 @@ class Game:
         self.player.rect.center = (WIDTH / 2, HEIGHT - 10)
         self.player.health = self.player.total_health
         self.player.shield_health = self.player.shield_total_health
+        # we need the player.forcefield to be false so that the shield will reboot
+        self.player.force_field = False
 
     def initialize(self):
         # initialize all variables and do all the setup for a new game
@@ -1800,6 +1828,9 @@ class Game:
             game_conditions.player_temp_invulnerable = False
             # resets the player's position, health, etc.
             self.reset_player_stats()
+        elif self.stage_beaten:
+            self.reset_player_stats()
+            self.stage_beaten = False
 
         # Score
         self.score = 0
@@ -1810,10 +1841,11 @@ class Game:
     def run(self, stage_name):
         # game loop - set self.playing = False to end the game
         pygame.mixer.music.play(loops=-1)
-        self.stage_beaten = False
+        #self.stage_beaten = False
         asteroid_end_of_list = False
         spawned_first_enemy = False
         spawned_meteor_wave = False
+        self.reached_stage_end = False
         self.playing = True
         stage_wave_index = 0
         timer = pygame.time.get_ticks()
@@ -1852,35 +1884,46 @@ class Game:
                             stage_wave_index += 1
                         else:
                             self.stage_beaten = True
+                    elif stage[stage_wave_index] == 'fin':
+                        self.reached_stage_end = True
+                    elif stage[stage_wave_index] == 'no boss':
+                        self.stage_respawn_list = []
                     elif not spawned_first_enemy or now - timer > 1000:
                         for mob_descript in stage[stage_wave_index]:
-                            if mob_descript == 'dialogue' and self.mobs :
+                            #if mob_descript == 'dialogue' and (self.mobs or self.stage_respawn_list):
+                            if mob_descript == 'dialogue' and self.mobs:
                                 self.dialog_flag_encountered = True
                                 #print(stage[stage_wave_index])
+                            #elif (self.dialog_flag_encountered and not (self.mobs or self.stage_respawn_list)) or (mob_descript == 'dialogue' and not (self.mobs or self.stage_respawn_list)):
                             elif (self.dialog_flag_encountered and not self.mobs) or (mob_descript == 'dialogue' and not self.mobs):
                                 self.on_dialogue_stage = True
+                                self.stage_respawn_list = []
                                 self.dialog_flag_encountered = False
                             elif not self.dialog_flag_encountered:
                                 self.spawnEnemy(mob_descript[0], mob_descript[1], mob_descript[2], mob_descript[3])
-                        while self.stage_respawn_list:
+                        while self.stage_respawn_list and not self.on_dialogue_stage:
                             mob_descript = self.stage_respawn_list.pop(0)
                             self.spawnEnemy(mob_descript[0], mob_descript[1], mob_descript[2], mob_descript[3], True)
-                        if stage_wave_index < len(stage)-1 or self.dialog_flag_encountered:
-                            if not self.dialog_flag_encountered:
-                                stage_wave_index += 1
-                        else:
-                            self.stage_beaten = True
+                        #else:
+                        #   self.stage_beaten = True
                         timer = now
                         spawned_first_enemy = True
+                    if stage_wave_index < len(stage)-1 or self.dialog_flag_encountered:
+                        if not self.dialog_flag_encountered:
+                            stage_wave_index += 1
+                    elif self.reached_stage_end and not (self.mobs):
+                        self.stage_beaten = True
                 self.update()
             elif self.on_dialogue_stage:
                 timer = pygame.time.get_ticks()
                 self.update()
             self.draw()
-            if game_conditions.game_over:
+            if game_conditions.game_over or self.stage_beaten:
                 self.playing = False
         if game_conditions.game_over:
             self.show_gameover_screen()
+        elif self.stage_beaten:
+            self.show_stage_conclusion_screen()
 
 # create the game object
 g = Game()

@@ -199,3 +199,38 @@ class MobAngledBullet(MobBullet):
         # kill if it moves off the top of the screen
         if self.rect.bottom < 0 or self.rect.top > HEIGHT or self.rect.x < -20 or self.rect.x > WIDTH + 20:
             self.kill()
+
+
+class MobSplitBullet(MobBullet):
+    def __init__(self, game, x, y, bullet_damage=30, split_bullet_dmg=15, bullet_speed=10, shoot_direction="down", split_number=2, split_angle_list=[0,180], target=None):
+        self.groups = game.all_sprites, game.enemy_bullets
+        pygame.sprite.Sprite.__init__(self, self.groups)
+        self.image = game.mob_bullet_orange_img
+        self.image.set_colorkey(BLACK)
+        self.game = game
+        self.rect = self.image.get_rect()
+        self.pos = vec(x, y)
+        self.rect.center = self.pos
+        self.angle = 90
+        self.speed = bullet_speed
+        self.dmg = bullet_damage
+        self.split_dmg = split_bullet_dmg
+        self.shoot_direction = shoot_direction
+        self.split_number = split_number
+        self.split_angle_list = split_angle_list
+        self.target = target
+
+    def update(self):
+        if self.shoot_direction == "down":
+            self.pos = vec(self.rect.centerx, self.rect.centery + self.speed)
+        elif self.shoot_direction == "up":
+            self.pos = vec(self.rect.centerx, self.rect.centery - self.speed)
+        self.rect.center = self.pos
+        if self.target:
+            if (self.shoot_direction == "down" and self.rect.centery >= self.target.rect.centery) or (self.shoot_direction == "up" and self.rect.centery < self.target.rect.centery):
+                for i in range(0, self.split_number):
+                    m = MobAngledBullet(self.game, self.game.mob_bullet_orange_split_img, self.rect.centerx,
+                                         self.rect.centery, self.split_angle_list[i], self.split_dmg, 20)
+                self.kill()
+        if self.rect.bottom < 0 or self.rect.top > HEIGHT or self.rect.x < -20 or self.rect.x > WIDTH + 20:
+            self.kill()

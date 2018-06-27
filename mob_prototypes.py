@@ -754,20 +754,26 @@ class ProtoSmugglerLieut(Mob):
         #self.went_left = 0
         #self.reached_far_right, self.reached_far_left = False, True
         self.firing_chance = 2
-        self.projectile_type = MobBomb
+        self.projectile_type = MobSplitBullet
         self.side_speed = 2
         self.kiled = False
         self.enemyType = 'pro_smug_lieut_enemy'
 
     def update(self):
         if self.game.on_dialogue_stage and not self.reached_dialog_destination:
-            if self.rect.centery < 320:
-                self.pos = vec(self.rect.centerx, self.rect.centery + 8)
+            if self.rect.centery < 160:
+                self.pos = vec(self.rect.centerx, self.rect.centery + self.speed)
                 self.rect.center = self.pos
             else:
                 self.reached_dialog_destination = True
                 self.despawn_location = 'all'
         elif not self.game.on_dialogue_stage and self.reached_dialog_destination:
+            if self.rect.y > 0 and self.rect.y < HEIGHT and pygame.time.get_ticks() - self.last_shot > self.shot_delay:
+                shoot_chance = random.randrange(1, 101)
+                if shoot_chance < self.firing_chance:
+                    self.shoot(self.projectile_type)
+                    self.shots_fired += 1
+                    self.last_shot = pygame.time.get_ticks()
             directionVector = self.destination - self.pos
             directionMagnitude = math.sqrt(((directionVector[0]) ** 2) + ((directionVector[1]) ** 2))
             if directionMagnitude > 0:

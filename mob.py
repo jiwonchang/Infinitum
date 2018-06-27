@@ -263,8 +263,8 @@ class EnemySmuggler2(PrototypeCoordEnemy):
         self.game.e1_shoot_sound.play()
         #if now - self.last_shot > self.shoot_delay:
         #    self.last_shot = now
-        bullet = Bullet(self.game, self.game.mob_bullet_yellow_img, self.rect.centerx, self.rect.centery, 300, 15, 10)
-        bullet = Bullet(self.game, self.game.mob_bullet_yellow_img, self.rect.centerx, self.rect.centery, 240, 15, 10)
+        bullet1 = Bullet(self.game, self.game.mob_bullet_yellow_img, self.rect.centerx, self.rect.centery, 300, 15, 10)
+        bullet2 = Bullet(self.game, self.game.mob_bullet_yellow_img, self.rect.centerx, self.rect.centery, 240, 15, 10)
 
 
 class EnemyFighter1(PrototypeEnemyFighter):
@@ -491,15 +491,16 @@ class EnemySmugglerLieut(ProtoSmugglerLieut):
         self.angle = 270
         self.speed = 7
         self.rot = 0
-        self.rot_speed = 8
+        #self.rot_speed = 8
+        self.rot_speed = 12
         super().__init__(game, game.enemy_cruiser1_img, movePattern, self.order, shots_allowed, 300, True)
         self.destination_list = []
         if movePattern == 'topDown_SLieut':
             self.moveFormation(WIDTH/2, self.top_spawn_y, self.angle, self.speed, self.rot_speed,
-                               [(WIDTH/2, 256), (320, 256), (WIDTH-320, 256), (WIDTH/2, 256), (WIDTH/2, 928), (WIDTH/2, 256)])
-        elif movePattern == 'topRight_Cruiser':
-            self.moveFormation(WIDTH - 96, self.top_spawn_y, self.angle, self.speed, self.rot_speed,
-                               [(WIDTH - 96, 744), (cruiser1_eight_squad_coords[order+4][0]-120, 704), cruiser1_eight_squad_coords[order+4]])
+                               [(WIDTH/2, 160), (320, 160), (WIDTH-320, 160), (WIDTH/2, 160), (WIDTH/2, 928), (WIDTH/2, 160)])
+        elif movePattern == 'topDownEagle_SLieut':
+            self.moveFormation(WIDTH/2, self.top_spawn_y, self.angle, self.speed, self.rot_speed,
+                               [(WIDTH/2, 160), (224, 672), (WIDTH/2, 160), (WIDTH-224, 672), (WIDTH/2, 160), (WIDTH/2, 864), (WIDTH/2, 160)])
         elif movePattern == 'lowerLeft_Cruiser':
             self.moveSideFormation(self.lowerLeftSpawn_x, HEIGHT - 160, self.angle, self.speed, self.rot_speed,
                                [(32, HEIGHT - 160), (1024, 160), (160, 96), cruiser1_eight_squad_coords[order+5]])
@@ -511,9 +512,9 @@ class EnemySmugglerLieut(ProtoSmugglerLieut):
         self.pos = vec(self.rect.x, self.rect.y)
         self.rect.center = self.pos
         self.collision_dmg = self.radius * 3
-        self.shot_delay = 1000
-        self.firing_chance = 5
-        self.projectile_type = MobCruiser1Bullet
+        self.shot_delay = 800
+        self.firing_chance = 100
+        self.projectile_type = MobSplitBullet
         self.side_speed = 1
         self.enemyType = 'enemySmugglerLieut'
 
@@ -529,5 +530,8 @@ class EnemySmugglerLieut(ProtoSmugglerLieut):
         self.game.e1_shoot_sound.play()
         #if now - self.last_shot > self.shoot_delay:
         #    self.last_shot = now
-        bullet = Bullet(self.game, self.rect.left+10, self.rect.centery, self, self.game.player)
-        bullet = Bullet(self.game, self.rect.right-10, self.rect.centery, self, self.game.player)
+        if self.game.player.rect.centery >= self.rect.centery:
+            bullet = Bullet(self.game, self.rect.centerx, self.rect.centery, 30, 15, 10, "down", 2, [0, 180], self.game.player)
+        else:
+            bullet = Bullet(self.game, self.rect.centerx, self.rect.centery, 30, 15, 10, "up", 2, [0, 180],
+                            self.game.player)
