@@ -932,7 +932,8 @@ class Game:
         pygame.display.flip()
         choice  = self.navigate_menu([0,1,2], options_cursor_coords)
         if choice == 0:
-            self.stage_index += 1
+            if self.stage_index < len(self.stages):
+                self.stage_index += 1
             self.ship_deck_menu()
         elif choice == 1:
             self.player.lives = 3
